@@ -1,8 +1,10 @@
-def create_email_content(issue_counts):
+def create_email_content(issue_counts, crisis_data):
     """
-    Gera o conteúdo HTML do e-mail com base nas contagens de issues, com o estilo semelhante ao exemplo.
+    Gera o conteúdo HTML do e-mail com base nas contagens de issues e nas informações detalhadas de cada crise.
     Args:
         issue_counts (dict): Dicionário com o nome do filtro e a contagem de issues.
+        crisis_data (list of dict): Lista com dados das crises, cada item sendo um dicionário com as chaves 'ticket',
+                                    'sistema', 'impacto', 'status', 'observacao', 'checkpoint'.
     Returns:
         str: Conteúdo do e-mail em HTML.
     """
@@ -21,12 +23,14 @@ def create_email_content(issue_counts):
                 .table th {{ background-color: #d3d3d3; font-weight: bold; }}
                 .checklist-title {{ background-color: #d3d3d3; font-weight: bold; font-size: 16px; }}
                 .alerts-title {{ color: #5a336b; font-weight: bold; font-size: 14px; }}
+                .crisis-title {{ background-color: #d3d3d3; font-weight: bold; font-size: 16px; }}
                 .section-header {{ text-align: center; padding: 8px; }}
                 .count {{ font-size: 18px; font-weight: bold; }}
             </style>
         </head>
         <body>
             <div class="table-container">
+                <!-- Tabela Checklist -->
                 <table class="table">
                     <tr>
                         <th colspan="5" class="checklist-title">Checklist</th>
@@ -47,6 +51,7 @@ def create_email_content(issue_counts):
                     </tr>
                 </table>
 
+                <!-- Tabela Alertas -->
                 <table class="table">
                     <tr>
                         <th colspan="5" class="alerts-title">Alertas não resolvidos fora do horário comercial</th>
@@ -66,6 +71,22 @@ def create_email_content(issue_counts):
                         <td class="count">{seguranca}</td>
                     </tr>
                 </table>
+
+                <!-- Tabela Crises -->
+                <table class="table">
+                    <tr>
+                        <th colspan="6" class="crisis-title">Detalhes das Crises</th>
+                    </tr>
+                    <tr>
+                        <th>Ticket</th>
+                        <th>Sistema</th>
+                        <th>Impacto</th>
+                        <th>Status</th>
+                        <th>Observações</th>
+                        <th>Checkpoint</th>
+                    </tr>
+                    {crisis_rows}
+                </table>
             </div>
             <p>Este é um e-mail automático gerado pela aplicação de relatórios do Jira.</p>
         </body>
@@ -83,7 +104,19 @@ def create_email_content(issue_counts):
         cloud=issue_counts.get("Cloud", 0),
         servidor=issue_counts.get("Servidor", 0),
         rede=issue_counts.get("Redes", 0),
-        seguranca=issue_counts.get("Segurança", 0)
+        seguranca=issue_counts.get("Segurança", 0),
+        crisis_rows="".join([
+            f"""
+            <tr>
+                <td>{crisis["ticket"]}</td>
+                <td>{crisis["sistema"]}</td>
+                <td>{crisis["impacto"]}</td>
+                <td>{crisis["status"]}</td>
+                <td>{crisis["observacao"]}</td>
+                <td>{crisis["checkpoint"]}</td>
+            </tr>
+            """ for crisis in crisis_data
+        ])
     )
 
     return html_content
