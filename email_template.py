@@ -1,10 +1,14 @@
-def create_email_content(issue_counts, crisis_data):
+def create_email_content(issue_counts, crisis_data, general_observations):
     """
-    Gera o conteúdo HTML do e-mail com base nas contagens de issues e nas informações detalhadas de cada crise.
+    Gera o conteúdo HTML do e-mail com base nas contagens de issues, nas informações detalhadas de cada crise
+    e nas observações gerais.
+    
     Args:
         issue_counts (dict): Dicionário com o nome do filtro e a contagem de issues.
         crisis_data (list of dict): Lista com dados das crises, cada item sendo um dicionário com as chaves 'ticket',
                                     'sistema', 'impacto', 'status', 'observacao', 'checkpoint'.
+        general_observations (str): Texto das observações gerais a serem incluídas no e-mail.
+
     Returns:
         str: Conteúdo do e-mail em HTML.
     """
@@ -29,6 +33,12 @@ def create_email_content(issue_counts, crisis_data):
             </style>
         </head>
         <body>
+            <!-- Observações Gerais -->
+            <div class="table-container">
+                <h2>Observações Gerais</h2>
+                <p>{general_observations}</p>
+            </div>
+
             <div class="table-container">
                 <!-- Tabela Checklist -->
                 <table class="table">
@@ -88,6 +98,8 @@ def create_email_content(issue_counts, crisis_data):
                     {crisis_rows}
                 </table>
             </div>
+            
+
             <p>Este é um e-mail automático gerado pela aplicação de relatórios do Jira.</p>
         </body>
     </html>
@@ -105,6 +117,7 @@ def create_email_content(issue_counts, crisis_data):
         servidor=issue_counts.get("Servidor", 0),
         rede=issue_counts.get("Redes", 0),
         seguranca=issue_counts.get("Segurança", 0),
+        general_observations=general_observations,
         crisis_rows="".join([
             f"""
             <tr>
