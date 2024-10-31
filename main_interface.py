@@ -4,6 +4,7 @@ from tkinter import Canvas, Frame, messagebox
 from jira_api import get_issue_counts, fetch_crisis_issues
 from email_template import create_email_content
 from email_service import enviar_email_com_template_infobip
+from datetime import datetime
 
 issue_counts = get_issue_counts()
 
@@ -184,10 +185,11 @@ def submit_data(crisis_entries, general_observations):
     email_content = create_email_content(issue_counts, all_data, formatted_observations)
 
     destinatario = "lucas.moraes.stefanini@segurosunimed.com.br"
-    destinatario_cc = "ruan.santos.stefanini@segurosunimed.com.br"
+    destinatario_cc = ""
+    today = datetime.today().strftime("%d/%m")
 
     try:
-        enviar_email_com_template_infobip(destinatario, destinatario_cc, "Relatório de Crises e Contagem de Tickets", email_content)
+        enviar_email_com_template_infobip(destinatario, destinatario_cc, f"Passagem de turno {today}", email_content)
         messagebox.showinfo("Envio de E-mail", "E-mail enviado com sucesso!")
     except Exception as e:
         messagebox.showerror("Erro de Envio", f"Ocorreu um erro ao enviar o e-mail: {e}")
