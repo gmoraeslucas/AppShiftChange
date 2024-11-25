@@ -163,10 +163,10 @@ def submit_data(crisis_entries, general_observations):
 
     formatted_observations = general_observations.replace("\n", "<br>")
 
-    email_content = create_email_content(issue_counts, all_data, formatted_observations)
+    email_content = create_email_content(issue_counts, all_data, formatted_observations, text_events)
 
-    destinatario = "lucas.moraes.stefanini@segurosunimed.com.br"
-    destinatario_cc = "nicolly.matos.stefanini@segurosunimed.com.br"
+    destinatario = "ti-commandcenter@segurosunimed.com.br"
+    destinatario_cc = "thiago.maia@segurosunimed.com.br"
     today = datetime.today().strftime("%d/%m")
 
     try:

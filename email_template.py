@@ -1,4 +1,4 @@
-def create_email_content(issue_counts, crisis_data, general_observations):
+def create_email_content(issue_counts, crisis_data, general_observations, text_events):
     """
     Gera o conteúdo HTML do e-mail com base nas contagens de issues, nas informações detalhadas de cada crise
     e nas observações gerais.
@@ -64,7 +64,7 @@ def create_email_content(issue_counts, crisis_data, general_observations):
                 <!-- Tabela Alertas -->
                 <table class="table">
                     <tr>
-                        <th colspan="5" class="alerts-title">Alertas não resolvidos fora do horário comercial</th>
+                        <th colspan="5" class="alerts-title">{text_events}</th>
                     </tr>
                     <tr>
                         <th>Banco de Dados</th>
@@ -118,6 +118,7 @@ def create_email_content(issue_counts, crisis_data, general_observations):
         rede=issue_counts.get("Redes", 0),
         seguranca=issue_counts.get("Segurança", 0),
         general_observations=general_observations,
+        text_events=text_events,
         crisis_rows="".join([
             f"""
             <tr>
