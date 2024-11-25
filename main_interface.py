@@ -1,7 +1,7 @@
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from tkinter import Canvas, Frame, messagebox
-from jira_api import get_issue_counts, fetch_crisis_issues
+from jira_api import get_issue_counts, fetch_crisis_issues, text_events
 from email_template import create_email_content
 from email_service import enviar_email_com_template_infobip
 from datetime import datetime
@@ -9,45 +9,33 @@ from datetime import datetime
 issue_counts = get_issue_counts()
 
 def create_main_interface():
-    # Funções para rolar o Canvas com o mouse
     def on_mouse_wheel(event):
         canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
-    def on_mouse_wheel_mac(event):
-        canvas.yview_scroll(int(-1 * event.delta), "units")
-
-    # Configuração inicial do root e do canvas
     root = ttk.Window(themename="darkly")
     root.title("Gerenciamento de Crises e Contagem de Tickets")
-    root.geometry("1775x900")
+    root.geometry("1550x900")
 
-    # Canvas com Scrollbar para rolar o conteúdo
     canvas = Canvas(root)
     scrollbar = ttk.Scrollbar(root, orient="vertical", command=canvas.yview)
     scrollable_frame = Frame(canvas)
 
-    # Adiciona o binding do evento de rolagem para Windows e Mac
-    canvas.bind_all("<MouseWheel>", on_mouse_wheel)  # Windows
+    canvas.bind_all("<MouseWheel>", on_mouse_wheel) 
 
-    # Configuração do frame para se expandir com o canvas
     scrollable_frame.bind(
         "<Configure>",
         lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
     )
 
-    # Cria o frame que será exibido no canvas
     canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
     canvas.configure(yscrollcommand=scrollbar.set)
 
-    # Posiciona o canvas e a scrollbar na interface
     canvas.pack(side="left", fill="both", expand=True)
     scrollbar.pack(side="right", fill="y")
 
-    # Conteúdo da interface dentro do frame scrollável
     title_label = ttk.Label(scrollable_frame, text="Checklist", font=("Arial", 14, "bold"))
     title_label.pack(pady=10)
 
-    # Frame para checklist
     checklist_frame = ttk.LabelFrame(scrollable_frame, padding=10, bootstyle="secondary", borderwidth=1, relief="solid")
     checklist_frame.pack(fill="x", padx=10, pady=5)
 
@@ -70,11 +58,9 @@ def create_main_interface():
     for i in range(len(headers_checklist)):
         checklist_frame.grid_columnconfigure(i, weight=1, uniform="uniform")
 
-    # Título da seção de alertas fora do horário comercial
-    alerts_title_label = ttk.Label(scrollable_frame, text="Alertas não resolvidos fora do horário comercial", font=("Arial", 14, "bold"))
+    alerts_title_label = ttk.Label(scrollable_frame, text=text_events, font=("Arial", 14, "bold"))
     alerts_title_label.pack(pady=10)
 
-    # Frame para a tabela de alertas com bordas arredondadas e finas
     alerts_frame = ttk.LabelFrame(scrollable_frame, padding=10, bootstyle="secondary", borderwidth=1, relief="solid")
     alerts_frame.pack(fill="x", padx=10, pady=5)
 
@@ -97,11 +83,9 @@ def create_main_interface():
     for i in range(len(headers_alerts)):
         alerts_frame.grid_columnconfigure(i, weight=1, uniform="uniform")
 
-    # Título da seção de detalhes das crises
     crisis_title_label = ttk.Label(scrollable_frame, text="Crises e Detalhes", font=("Arial", 14, "bold"))
     crisis_title_label.pack(pady=10)
 
-    # Frame para a tabela de crises com bordas arredondadas e finas
     crisis_frame = ttk.LabelFrame(scrollable_frame, padding=10, bootstyle="secondary", borderwidth=1, relief="solid")
     crisis_frame.pack(fill="x", padx=10, pady=5)
 
@@ -112,7 +96,6 @@ def create_main_interface():
     for i in range(len(headers_crisis)):
         crisis_frame.grid_columnconfigure(i, weight=1, uniform="uniform")
 
-    # Dados das crises com campos de entrada e linhas de separação
     crisis_data = fetch_crisis_issues()
     crisis_entries = []
 
@@ -178,18 +161,16 @@ def submit_data(crisis_entries, general_observations):
             "checkpoint": checkpoint
         })
 
-    # Substitui as quebras de linha por <br> para preservar a formatação no e-mail
     formatted_observations = general_observations.replace("\n", "<br>")
 
-    # Gera o conteúdo HTML do e-mail usando os dados e Observações Gerais
     email_content = create_email_content(issue_counts, all_data, formatted_observations)
 
     destinatario = "lucas.moraes.stefanini@segurosunimed.com.br"
-    destinatario_cc = ""
+    destinatario_cc = "nicolly.matos.stefanini@segurosunimed.com.br"
     today = datetime.today().strftime("%d/%m")
 
     try:
-        enviar_email_com_template_infobip(destinatario, destinatario_cc, f"Passagem de turno {today}", email_content)
+        enviar_email_com_template_infobip(destinatario, destinatario_cc, f"Passagem de turno - {today}", email_content)
         messagebox.showinfo("Envio de E-mail", "E-mail enviado com sucesso!")
     except Exception as e:
         messagebox.showerror("Erro de Envio", f"Ocorreu um erro ao enviar o e-mail: {e}")

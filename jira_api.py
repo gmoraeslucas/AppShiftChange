@@ -2,26 +2,40 @@ import os
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
+from datetime import datetime
+import pytz
 
 load_dotenv()
 
-# Configurações do Jira
 JIRA_URL = os.getenv("JIRA_URL")
 JIRA_USER = os.getenv("JIRA_USER")
 JIRA_API_TOKEN = os.getenv("JIRA_API_TOKEN")
 
-# Filtros JQL para contagens específicas
+brazil_timezone = pytz.timezone('America/Sao_Paulo')
+
+current_time_in_brazil = datetime.now(brazil_timezone)
+
+if current_time_in_brazil.weekday() == 0:
+    from_time = 'startOfWeek("-26h")'
+    to_time = 'startOfWeek("\u002b32h")'
+    text_events = "Alertas não resolvidos fora do horário comercial (Fim de semana)"
+
+else:
+    from_time = 'startOfDay("-2h")'
+    to_time = 'startOfDay("\u002b8h")' 
+    text_events = "Alertas não resolvidos fora do horário comercial"
+
 JQL_QUERIES = {
     "Tickets Registrados (Geral)": "project = Governança AND issuetype = Evento AND created >= startOfDay()",
     "Tickets Resolvidos": "project = Governança AND issuetype = Evento AND status = Resolvido AND resolved >= startOfDay()",
     "Resolvidos com SLA vencido": "project = Governança AND issuetype = Evento AND status = Resolvido AND resolved >= startOfDay() AND \"SLA Evento\" = breached()",
     "Backlog": "project = Governança AND issuetype = Evento AND Status not in (Resolvido, Encerrado, Cancelado)",
     "Backlog com SLA vencido": "project = Governança AND issuetype = Evento AND Status not in (Resolvido, Encerrado, Cancelado) AND \"SLA Evento\" = breached()",
-    "Banco de dados": "project = Governança AND status != Resolvido AND type = Evento AND \"Equipe Atendente[Dropdown]\" in (\"Banco de Dados\") AND created >= startOfDay(-2h) AND created <= startOfDay(\"+8h\")",
-    "Servidor": "project = Governança AND status != Resolvido AND type = Evento AND \"Equipe Atendente[Dropdown]\" in (Servidor) AND created >= startOfDay(-2h) AND created <= startOfDay(\"+8h\")",
-    "Cloud": "project = Governança AND status != Resolvido AND type = Evento AND \"Equipe Atendente[Dropdown]\" in (Cloud) AND created >= startOfDay(-2h) AND created <= startOfDay(\"+8h\")",
-    "Redes": "project = Governança AND status != Resolvido AND type = Evento AND \"Equipe Atendente[Dropdown]\" in (Telecom) AND created >= startOfDay(-2h) AND created <= startOfDay(\"+8h\")",
-    "Segurança": "project = Governança AND status != Resolvido AND type = Evento AND \"Equipe Atendente[Dropdown]\" in (\"Equipe - Cyber Security\") AND created >= startOfDay(-2h) AND created <= startOfDay(\"+8h\")"
+    "Banco de dados": f"project = Governança AND status != Resolvido AND type = Evento AND \"Equipe Atendente[Dropdown]\" in (\"Banco de Dados\") AND created >= {from_time} AND created <= {to_time}",
+    "Servidor": f"project = Governança AND status != Resolvido AND type = Evento AND \"Equipe Atendente[Dropdown]\" in (Servidor) AND created >= {from_time} AND created <= {to_time}",
+    "Cloud": f"project = Governança AND status != Resolvido AND type = Evento AND \"Equipe Atendente[Dropdown]\" in (Cloud) AND created >= {from_time} AND created <= {to_time}",
+    "Redes": f"project = Governança AND status != Resolvido AND type = Evento AND \"Equipe Atendente[Dropdown]\" in (Telecom) AND created >= {from_time} AND created <= {to_time}",
+    "Segurança": f"project = Governança AND status != Resolvido AND type = Evento AND \"Equipe Atendente[Dropdown]\" in (\"Equipe - Cyber Security\") AND created >= {from_time} AND created <= {to_time}"
 }
 
 def fetch_count_for_filter(name, jql):
@@ -87,7 +101,6 @@ def fetch_crisis_issue_details(issue_id):
         response.raise_for_status()
         issue_data = response.json()
         
-        # Extrai detalhes
         issue_ticket = issue_data['key']
         Impacto = issue_data['fields'].get('customfield_11335', {})
         issue_impacto = extract_text_from_Impacto(Impacto)
@@ -123,12 +136,10 @@ def fetch_crisis_issues():
             print("Consulta realizada com sucesso, mas nenhuma issue foi encontrada.")
             return []
 
-        # IDs dos tickets das crises
         issue_ids = [issue["key"] for issue in issues_data]
 
-        # Processamento detalhado das crises em paralelo com um limite de threads
         crisis_issues = []
-        with ThreadPoolExecutor(max_workers=5) as executor:  # Limite de threads controlado
+        with ThreadPoolExecutor(max_workers=5) as executor: 
             futures = [executor.submit(fetch_crisis_issue_details, issue_id) for issue_id in issue_ids]
             for future in as_completed(futures):
                 result = future.result()
