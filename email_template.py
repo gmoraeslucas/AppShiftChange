@@ -1,4 +1,4 @@
-def create_email_content(issue_counts, crisis_data, general_observations, text_events):
+def create_email_content(issue_counts, crisis_data, issues_obh_data, general_observations, text_events):
     """
     Gera o conteúdo HTML do e-mail com base nas contagens de issues, nas informações detalhadas de cada crise
     e nas observações gerais.
@@ -15,21 +15,70 @@ def create_email_content(issue_counts, crisis_data, general_observations, text_e
 
     # Tabela HTML estilizada com as duas seções
     html_content = """
-    <html>
+        <html>
         <head>
             <style>
-                body {{ font-family: Arial, sans-serif; }}
-                h2 {{ color: #333; }}
-                .table-container {{ width: 100%; max-width: 600px; margin: auto; }}
-                .table {{ width: 100%; border-collapse: collapse; margin-bottom: 20px; }}
-                .table, .table th, .table td {{ border: 1px solid #333; }}
-                .table th, .table td {{ padding: 8px; text-align: center; }}
-                .table th {{ background-color: #d3d3d3; font-weight: bold; }}
-                .checklist-title {{ background-color: #d3d3d3; font-weight: bold; font-size: 16px; }}
-                .alerts-title {{ color: #5a336b; font-weight: bold; font-size: 14px; }}
-                .crisis-title {{ background-color: #d3d3d3; font-weight: bold; font-size: 16px; }}
-                .section-header {{ text-align: center; padding: 8px; }}
-                .count {{ font-size: 18px; font-weight: bold; }}
+                body {{
+                    font-family: Arial, sans-serif;
+                    margin: 0; 
+                    padding: 0;
+                    display: flex;
+                    justify-content: center; /* Centraliza horizontalmente */
+                    background-color: #f0f0f0;
+                }}
+
+                /* Container principal */
+                .table-container {{
+                    width: 100%;
+                    max-width: 1000px; /* Aumenta o tamanho da caixa branca */
+                    margin: 20px auto; /* Centraliza vertical e horizontalmente */
+                    background-color: #ffffff;
+                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                    padding: 20px;
+                    border-radius: 8px;
+                    box-sizing: border-box;
+                    overflow-x: auto; /* Evita rolagem horizontal */
+                }}
+
+                /* Tabelas - Ajustáveis */
+                .table {{
+                    width: 100%; /* Ajusta a tabela para ocupar todo o container */
+                    margin: 0 auto; /* Centraliza dentro do container */
+                    table-layout: auto; /* Ajusta colunas dinamicamente ao conteúdo */
+                    border-collapse: collapse;
+                }}
+
+                /* Células das tabelas */
+                .table th, .table td {{
+                    border: 1px solid #333;
+                    padding: 12px;
+                    text-align: center;
+                    font-size: 16px;
+                    white-space: normal; /* Permite a quebra de linha */
+                    word-wrap: break-word; /* Quebra palavras muito longas */
+                    max-width: 200px; /* Limita a largura das células */
+                    overflow-wrap: break-word;
+                }}
+
+                /* Cabeçalhos da tabela */
+                .table th {{
+                    background-color: #d3d3d3;
+                    font-weight: bold;
+                    text-align: center;
+                }}
+
+                /* Texto destacado */
+                .count {{
+                    font-size: 18px;
+                    font-weight: bold;
+                }}
+
+                /* Título principal da tabela */
+                .header-title {{
+                    background-color: #5a336b;
+                    color: #ffffff;
+                    font-weight: bold;
+                }}
             </style>
         </head>
         <body>
@@ -39,18 +88,18 @@ def create_email_content(issue_counts, crisis_data, general_observations, text_e
                 <p>{general_observations}</p>
             </div>
 
+            <!-- Checklist -->
             <div class="table-container">
-                <!-- Tabela Checklist -->
                 <table class="table">
                     <tr>
-                        <th colspan="5" class="checklist-title">Checklist</th>
+                        <th colspan="5" class="header-title">Checklist</th>
                     </tr>
                     <tr>
-                        <th>Tickets registrados<br>(Geral)</th>
-                        <th>Resolvidos</th>
-                        <th>Resolvidos com SLA vencido</th>
-                        <th>Backlog</th>
-                        <th>Backlog com SLA vencido</th>
+                        <th style="width: 20%;">Tickets Registrados (Geral)</th>
+                        <th style="width: 20%;">Resolvidos</th>
+                        <th style="width: 20%;">Resolvidos com SLA Vencido</th>
+                        <th style="width: 20%;">Backlog</th>
+                        <th style="width: 20%;">Backlog com SLA Vencido</th>
                     </tr>
                     <tr>
                         <td class="count">{tickets_geral}</td>
@@ -60,32 +109,45 @@ def create_email_content(issue_counts, crisis_data, general_observations, text_e
                         <td class="count">{backlog_sla_vencido}</td>
                     </tr>
                 </table>
+            </div>
 
-                <!-- Tabela Alertas -->
+            <!-- Alertas -->
+            <div class="table-container">
                 <table class="table">
                     <tr>
-                        <th colspan="5" class="alerts-title">{text_events}</th>
+                        <th colspan="8" class="header-title">Alertas Não Resolvidos Fora do Horário Comercial</th>
                     </tr>
                     <tr>
                         <th>Banco de Dados</th>
-                        <th>Cloud</th>
-                        <th>Servidor</th>
-                        <th>Rede</th>
+                        <th colspan="2">Cloud</th>
+                        <th colspan="2">Servidor</th>
+                        <th colspan="2">Rede</th>
                         <th>Segurança</th>
                     </tr>
                     <tr>
                         <td class="count">{banco_dados}</td>
-                        <td class="count">{cloud}</td>
-                        <td class="count">{servidor}</td>
-                        <td class="count">{rede}</td>
+                        <td colspan="2" class="count">{cloud}</td>
+                        <td colspan="2" class="count">{servidor}</td>
+                        <td colspan="2" class="count">{rede}</td>
                         <td class="count">{seguranca}</td>
                     </tr>
+                    <tr>
+                        <th>Ticket</th>
+                        <th>Sistema</th>
+                        <th colspan="3">Resumo</th>
+                        <th>Status</th>
+                        <th>Criado</th>
+                        <th>Responsável</th>
+                    </tr>
+                    {issues_obh_rows}
                 </table>
+            </div>
 
-                <!-- Tabela Crises -->
+            <!-- Detalhes das Crises -->
+            <div class="table-container">
                 <table class="table">
                     <tr>
-                        <th colspan="6" class="crisis-title">Detalhes das Crises</th>
+                        <th colspan="6" class="header-title">Detalhes das Crises</th>
                     </tr>
                     <tr>
                         <th>Ticket</th>
@@ -98,11 +160,12 @@ def create_email_content(issue_counts, crisis_data, general_observations, text_e
                     {crisis_rows}
                 </table>
             </div>
-            
 
-            <p>Este é um e-mail automático gerado pela aplicação de relatórios do Jira.</p>
+            <p style="text-align: center;">Este é um e-mail automático gerado pela aplicação de relatórios do Jira.</p>
         </body>
     </html>
+
+
     """
 
     # Mapeando as contagens para variáveis
@@ -130,6 +193,18 @@ def create_email_content(issue_counts, crisis_data, general_observations, text_e
                 <td>{crisis["checkpoint"]}</td>
             </tr>
             """ for crisis in crisis_data
+        ]),
+        issues_obh_rows="".join([
+            f"""
+            <tr>
+                <td>{issue["ticket"]}</td>
+                <td>{issue["sistema"]}</td>
+                <td colspan="3">{issue["resumo"]}</td>
+                <td>{issue["status"]}</td>
+                <td>{issue["criado"]}</td>
+                <td>{issue["responsavel"]}</td>
+            </tr>
+            """ for issue in issues_obh_data
         ])
     )
 

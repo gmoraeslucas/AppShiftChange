@@ -1,7 +1,7 @@
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from tkinter import Canvas, Frame, messagebox
-from jira_api import get_issue_counts, fetch_crisis_issues, text_events
+from jira_api import get_issue_counts, fetch_crisis_issues, text_events, fetch_obh_issues
 from email_template import create_email_content
 from email_service import enviar_email_com_template_infobip
 from datetime import datetime
@@ -83,6 +83,28 @@ def create_main_interface():
     for i in range(len(headers_alerts)):
         alerts_frame.grid_columnconfigure(i, weight=1, uniform="uniform")
 
+    headers_crisis = ["Ticket", "Sistema", "Resumo", "Status", "Criado", "Responsável"]
+    for col, header in enumerate(headers_crisis):
+        ttk.Label(alerts_frame, text=header, font=("Arial", 10, "bold"), anchor="center").grid(row=0, column=col, padx=10, pady=5, sticky="nsew")
+
+    issues_obh_data = fetch_obh_issues()
+    issues_obh_entries = []
+
+    for row, issue in enumerate(issues_obh_data, start=1):
+        for col, value in enumerate([issue["ticket"], issue["sistema"], issue["resumo"], issue["status"], issue["criado"], issue["responsavel"]]):
+            cell_frame = ttk.Frame(alerts_frame, borderwidth=1, relief="solid")
+            cell_frame.grid(row=row, column=col, padx=10, pady=5, sticky="nsew")
+            ttk.Label(cell_frame, text=value, wraplength=150, anchor="center").pack(fill="both", expand=True)
+
+        issues_obh_entries.append({
+            "ticket": issue["ticket"],
+            "resumo": issue["resumo"],
+            "sistema": issue["sistema"],
+            "status": issue["status"],
+            "criado": issue["criado"],
+            "responsavel": issue["responsavel"]
+        })
+
     crisis_title_label = ttk.Label(scrollable_frame, text="Crises e Detalhes", font=("Arial", 14, "bold"))
     crisis_title_label.pack(pady=10)
 
@@ -137,13 +159,14 @@ def create_main_interface():
     general_obs_text = ttk.Text(general_obs_frame, width=100, height=5, wrap="word")
     general_obs_text.pack(fill="both", expand=True, padx=5, pady=5)
 
-    send_button = ttk.Button(scrollable_frame, text="Enviar E-mail", bootstyle="success", command=lambda: submit_data(crisis_entries, general_obs_text.get("1.0", "end-1c")))
+    send_button = ttk.Button(scrollable_frame, text="Enviar E-mail", bootstyle="success", command=lambda: submit_data(crisis_entries, issues_obh_entries, general_obs_text.get("1.0", "end-1c")))
     send_button.pack(pady=20)
 
     root.mainloop()
 
-def submit_data(crisis_entries, general_observations):
+def submit_data(crisis_entries, issues_obh_entries, general_observations):
     all_data = []
+    all_obh_data = []
     for entry in crisis_entries:
         ticket = entry["ticket"]
         impacto = entry["impacto"]
@@ -161,12 +184,29 @@ def submit_data(crisis_entries, general_observations):
             "checkpoint": checkpoint
         })
 
+    for entry in issues_obh_entries:
+        ticket = entry["ticket"]
+        resumo = entry["resumo"]
+        sistema = entry["sistema"]
+        status = entry["status"]
+        criado = entry["criado"]
+        responsavel = entry["responsavel"]
+
+        all_obh_data.append({
+                "ticket": ticket,
+                "resumo": resumo,
+                "sistema": sistema,
+                "status": status,
+                "criado": criado,
+                "responsavel": responsavel
+        })
+
     formatted_observations = general_observations.replace("\n", "<br>")
 
-    email_content = create_email_content(issue_counts, all_data, formatted_observations, text_events)
+    email_content = create_email_content(issue_counts, all_data, all_obh_data, formatted_observations, text_events)
 
-    destinatario = "ti-commandcenter@segurosunimed.com.br"
-    destinatario_cc = "thiago.maia@segurosunimed.com.br"
+    destinatario = "gabriel.oliveira@segurosunimed.com.br"
+    destinatario_cc = ""
     today = datetime.today().strftime("%d/%m")
 
     try:
