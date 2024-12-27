@@ -83,7 +83,7 @@ def create_main_interface():
     for i in range(len(headers_alerts)):
         alerts_frame.grid_columnconfigure(i, weight=1, uniform="uniform")
 
-    headers_crisis = ["Ticket", "Sistema", "Resumo", "Status", "Criado", "Responsável"]
+    headers_crisis = ["Ticket", "Sistema", "Resumo", "Status", "Criado", "Equipe Atendente"]
     for col, header in enumerate(headers_crisis):
         ttk.Label(alerts_frame, text=header, font=("Arial", 10, "bold"), anchor="center").grid(row=0, column=col, padx=10, pady=5, sticky="nsew")
 
@@ -91,7 +91,7 @@ def create_main_interface():
     issues_obh_entries = []
 
     for row, issue in enumerate(issues_obh_data, start=1):
-        for col, value in enumerate([issue["ticket"], issue["sistema"], issue["resumo"], issue["status"], issue["criado"], issue["responsavel"]]):
+        for col, value in enumerate([issue["ticket"], issue["sistema"], issue["resumo"], issue["status"], issue["criado"], issue["equipe_atendente"]]):
             cell_frame = ttk.Frame(alerts_frame, borderwidth=1, relief="solid")
             cell_frame.grid(row=row, column=col, padx=10, pady=5, sticky="nsew")
             ttk.Label(cell_frame, text=value, wraplength=150, anchor="center").pack(fill="both", expand=True)
@@ -102,7 +102,7 @@ def create_main_interface():
             "sistema": issue["sistema"],
             "status": issue["status"],
             "criado": issue["criado"],
-            "responsavel": issue["responsavel"]
+            "equipe_atendente": issue["equipe_atendente"]
         })
 
     crisis_title_label = ttk.Label(scrollable_frame, text="Crises e Detalhes", font=("Arial", 14, "bold"))
@@ -190,7 +190,7 @@ def submit_data(crisis_entries, issues_obh_entries, general_observations):
         sistema = entry["sistema"]
         status = entry["status"]
         criado = entry["criado"]
-        responsavel = entry["responsavel"]
+        equipe_atendente = entry["equipe_atendente"]
 
         all_obh_data.append({
                 "ticket": ticket,
@@ -198,19 +198,19 @@ def submit_data(crisis_entries, issues_obh_entries, general_observations):
                 "sistema": sistema,
                 "status": status,
                 "criado": criado,
-                "responsavel": responsavel
+                "equipe_atendente": equipe_atendente
         })
 
     formatted_observations = general_observations.replace("\n", "<br>")
 
     email_content = create_email_content(issue_counts, all_data, all_obh_data, formatted_observations, text_events)
 
-    destinatario = "gabriel.oliveira@segurosunimed.com.br"
-    destinatario_cc = ""
+    destinatario = "ti-commandcenter@segurosunimed.com.br"
+    destinatario_cc = "thiago.maia@segurosunimed.com.br"
     today = datetime.today().strftime("%d/%m")
 
     try:
-        enviar_email_com_template_infobip(destinatario, destinatario_cc, f"Passagem de turno - {today}", email_content)
+        enviar_email_com_template_infobip(destinatario, destinatario_cc, f"Nova Passagem de Turno - {today}", email_content)
         messagebox.showinfo("Envio de E-mail", "E-mail enviado com sucesso!")
     except Exception as e:
         messagebox.showerror("Erro de Envio", f"Ocorreu um erro ao enviar o e-mail: {e}")

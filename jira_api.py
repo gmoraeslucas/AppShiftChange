@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
 from datetime import datetime
 import pytz
+import json
 
 load_dotenv()
 
@@ -163,6 +164,7 @@ def fetch_obh_issue_details(issue_id):
     try:
         response = requests.get(url, headers=headers, auth=auth)
         response.raise_for_status()
+
         issue_data = response.json()
         
         issue_ticket = issue_data['key']
@@ -175,11 +177,13 @@ def fetch_obh_issue_details(issue_id):
         Status = issue_data['fields'].get('status', {})
         issue_status = Status.get('name', 'Não especificado')
 
-        issue_criado = issue_data['fields'].get('created', {})
+        Criado = issue_data['fields'].get('created', {})
+        Criado = Criado[:-5] + " " + Criado[-5:]
+        dt_object = datetime.strptime(Criado, "%Y-%m-%dT%H:%M:%S.%f %z")
+        issue_criado = dt_object.strftime("%d/%m/%Y - %H:%M")
 
-        Responsavel = issue_data['fields'].get('assignee', {})
-        issue_responsavel = Responsavel.get('displayName', 'Não especificado')
-
+        Equipe_atendente = issue_data['fields'].get('customfield_10275', {})
+        issue_equipe_atendente = Equipe_atendente.get('value', 'Não especificado')
         print(f"Processamento concluído para o ticket: {issue_ticket}")
         return {
             "ticket": issue_ticket,
@@ -187,7 +191,7 @@ def fetch_obh_issue_details(issue_id):
             "sistema": issue_sistema,
             "status": issue_status,
             "criado": issue_criado,
-            "responsavel": issue_responsavel
+            "equipe_atendente": issue_equipe_atendente
         }
     except requests.exceptions.RequestException as e:
         print(f"Erro ao buscar detalhes do ticket {issue_id}: {e}")

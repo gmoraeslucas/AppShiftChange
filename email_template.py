@@ -76,7 +76,6 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
                 /* Título principal da tabela */
                 .header-title {{
                     background-color: #5a336b;
-                    color: #ffffff;
                     font-weight: bold;
                 }}
             </style>
@@ -84,8 +83,8 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
         <body>
             <!-- Observações Gerais -->
             <div class="table-container">
-                <h2>Observações Gerais</h2>
-                <p>{general_observations}</p>
+                <h2 style="font-size: 22px;">Observações Gerais</h2>
+                <p style="font-size: 16px;">{general_observations}</p>
             </div>
 
             <!-- Checklist -->
@@ -115,29 +114,31 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
             <div class="table-container">
                 <table class="table">
                     <tr>
-                        <th colspan="8" class="header-title">Alertas Não Resolvidos Fora do Horário Comercial</th>
+                        <th colspan="10" class="header-title">Alertas Não Resolvidos Fora do Horário Comercial</th>
                     </tr>
                     <tr>
-                        <th>Banco de Dados</th>
-                        <th colspan="2">Cloud</th>
-                        <th colspan="2">Servidor</th>
-                        <th colspan="2">Rede</th>
-                        <th>Segurança</th>
+                        <th colspan="1">Banco de Dados</th>
+                        <th colspan="1">Cloud</th>
+                        <th colspan="5">Servidor</th>
+                        <th colspan="1">Rede</th>
+                        <th colspan="1">Segurança</th>
+                        <th colspan="1">Sistemas</th>
                     </tr>
                     <tr>
-                        <td class="count">{banco_dados}</td>
-                        <td colspan="2" class="count">{cloud}</td>
-                        <td colspan="2" class="count">{servidor}</td>
-                        <td colspan="2" class="count">{rede}</td>
-                        <td class="count">{seguranca}</td>
+                        <td colspan="1" class="count">{banco_dados}</td>
+                        <td colspan="1" class="count">{cloud}</td>
+                        <td colspan="5" class="count">{servidor}</td>
+                        <td colspan="1" class="count">{rede}</td>
+                        <td colspan="1" class="count">{seguranca}</td>
+                        <td colspan="1" class="count">N/A</td>
                     </tr>
                     <tr>
-                        <th>Ticket</th>
-                        <th>Sistema</th>
-                        <th colspan="3">Resumo</th>
-                        <th>Status</th>
-                        <th>Criado</th>
-                        <th>Responsável</th>
+                        <th colspan="1">Ticket</th>
+                        <th colspan="1">Sistema</th>
+                        <th colspan="5">Resumo</th>
+                        <th colspan="1">Status</th>
+                        <th colspan="1">Criado</th>
+                        <th colspan="1">Equipe Atendente</th>
                     </tr>
                     {issues_obh_rows}
                 </table>
@@ -197,12 +198,12 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
         issues_obh_rows="".join([
             f"""
             <tr>
-                <td>{issue["ticket"]}</td>
-                <td>{issue["sistema"]}</td>
-                <td colspan="3">{issue["resumo"]}</td>
-                <td>{issue["status"]}</td>
-                <td>{issue["criado"]}</td>
-                <td>{issue["responsavel"]}</td>
+                <td colspan="1">{issue["ticket"]}</td>
+                <td colspan="1">{issue["sistema"]}</td>
+                <td colspan="5">{issue["resumo"]}</td>
+                <td colspan="1">{issue["status"]}</td>
+                <td colspan="1">{issue["criado"]}</td>
+                <td colspan="1">{issue["equipe_atendente"]}</td>
             </tr>
             """ for issue in issues_obh_data
         ])
