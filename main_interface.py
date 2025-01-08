@@ -210,7 +210,7 @@ def submit_data(crisis_entries, issues_obh_entries, general_observations):
     today = datetime.today().strftime("%d/%m")
 
     try:
-        enviar_email_com_template_infobip(destinatario, destinatario_cc, f"Nova Passagem de Turno - {today}", email_content)
+        enviar_email_com_template_infobip(destinatario, destinatario_cc, f"Passagem de turno - {today}", email_content)
         messagebox.showinfo("Envio de E-mail", "E-mail enviado com sucesso!")
     except Exception as e:
         messagebox.showerror("Erro de Envio", f"Ocorreu um erro ao enviar o e-mail: {e}")

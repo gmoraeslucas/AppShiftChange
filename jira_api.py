@@ -22,7 +22,7 @@ if current_time_in_brazil.weekday() == 0:
     text_events = "Alertas não resolvidos fora do horário comercial (Fim de semana)"
     
 else:
-    from_time = 'startOfDay("-48h")'
+    from_time = 'startOfDay("-2h")'
     to_time = 'startOfDay("\u002b8h")' 
     text_events = "Alertas não resolvidos fora do horário comercial"
 
