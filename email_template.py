@@ -2,18 +2,71 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
     """
     Gera o conteúdo HTML do e-mail com base nas contagens de issues, nas informações detalhadas de cada crise
     e nas observações gerais.
-    
-    Args:
-        issue_counts (dict): Dicionário com o nome do filtro e a contagem de issues.
-        crisis_data (list of dict): Lista com dados das crises, cada item sendo um dicionário com as chaves 'ticket',
-                                    'sistema', 'impacto', 'status', 'observacao', 'checkpoint'.
-        general_observations (str): Texto das observações gerais a serem incluídas no e-mail.
-
-    Returns:
-        str: Conteúdo do e-mail em HTML.
     """
 
-    # Tabela HTML estilizada com as duas seções
+    # Para issues fora do horário comercial (OBH): monta a seção de detalhes somente se houver dados
+    if issues_obh_data:
+        issues_obh_details_section = (
+            """
+            <tr>
+                <th colspan="1">Ticket</th>
+                <th colspan="1">Sistema</th>
+                <th colspan="5">Resumo</th>
+                <th colspan="1">Status</th>
+                <th colspan="1">Criado</th>
+                <th colspan="1">Equipe Atendente</th>
+            </tr>
+            """
+            + "".join([
+                f"""
+                <tr>
+                    <td colspan="1">{issue["ticket"]}</td>
+                    <td colspan="1">{issue["sistema"]}</td>
+                    <td colspan="5">{issue["resumo"]}</td>
+                    <td colspan="1">{issue["status"]}</td>
+                    <td colspan="1">{issue["criado"]}</td>
+                    <td colspan="1">{issue["equipe_atendente"]}</td>
+                </tr>
+                """ for issue in issues_obh_data
+            ])
+        )
+    else:
+        issues_obh_details_section = ""  # Se não houver dados, não mostra a parte de detalhes
+
+    # Para crises: se houver dados, exibe o cabeçalho e as linhas; se não, exibe somente uma linha com mensagem
+    if crisis_data:
+        crisis_section = (
+            """
+            <tr>
+                <th>Ticket</th>
+                <th>Sistema</th>
+                <th>Impacto</th>
+                <th>Status</th>
+                <th>Observações</th>
+                <th>Checkpoint</th>
+            </tr>
+            """
+            + "".join([
+                f"""
+                <tr>
+                    <td>{crisis["ticket"]}</td>
+                    <td>{crisis["sistema"]}</td>
+                    <td>{crisis["impacto"]}</td>
+                    <td>{crisis["status"]}</td>
+                    <td>{crisis["observacao"]}</td>
+                    <td>{crisis["checkpoint"]}</td>
+                </tr>
+                """ for crisis in crisis_data
+            ])
+        )
+    else:
+        crisis_section = """
+            <tr>
+                <td colspan="6" style="text-align: center;">Nenhuma issue de crise retornada</td>
+            </tr>
+        """
+
+    # Template HTML do e-mail
     html_content = """
         <html>
         <head>
@@ -23,57 +76,45 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
                     margin: 0; 
                     padding: 0;
                     display: flex;
-                    justify-content: center; /* Centraliza horizontalmente */
+                    justify-content: center;
                     background-color: #f0f0f0;
                 }}
-
-                /* Container principal */
                 .table-container {{
                     width: 100%;
-                    max-width: 1000px; /* Aumenta o tamanho da caixa branca */
-                    margin: 20px auto; /* Centraliza vertical e horizontalmente */
+                    max-width: 1000px;
+                    margin: 20px auto;
                     background-color: #ffffff;
                     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
                     padding: 20px;
                     border-radius: 8px;
                     box-sizing: border-box;
-                    overflow-x: auto; /* Evita rolagem horizontal */
+                    overflow-x: auto;
                 }}
-
-                /* Tabelas - Ajustáveis */
                 .table {{
-                    width: 100%; /* Ajusta a tabela para ocupar todo o container */
-                    margin: 0 auto; /* Centraliza dentro do container */
-                    table-layout: auto; /* Ajusta colunas dinamicamente ao conteúdo */
+                    width: 100%;
+                    margin: 0 auto;
+                    table-layout: auto;
                     border-collapse: collapse;
                 }}
-
-                /* Células das tabelas */
                 .table th, .table td {{
                     border: 1px solid #333;
                     padding: 12px;
                     text-align: center;
                     font-size: 16px;
-                    white-space: normal; /* Permite a quebra de linha */
-                    word-wrap: break-word; /* Quebra palavras muito longas */
-                    max-width: 200px; /* Limita a largura das células */
+                    white-space: normal;
+                    word-wrap: break-word;
+                    max-width: 200px;
                     overflow-wrap: break-word;
                 }}
-
-                /* Cabeçalhos da tabela */
                 .table th {{
                     background-color: #d3d3d3;
                     font-weight: bold;
                     text-align: center;
                 }}
-
-                /* Texto destacado */
                 .count {{
                     font-size: 18px;
                     font-weight: bold;
                 }}
-
-                /* Título principal da tabela */
                 .header-title {{
                     background-color: #5a336b;
                     font-weight: bold;
@@ -132,15 +173,7 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
                         <td colspan="1" class="count">{seguranca}</td>
                         <td colspan="1" class="count">N/A</td>
                     </tr>
-                    <tr>
-                        <th colspan="1">Ticket</th>
-                        <th colspan="1">Sistema</th>
-                        <th colspan="5">Resumo</th>
-                        <th colspan="1">Status</th>
-                        <th colspan="1">Criado</th>
-                        <th colspan="1">Equipe Atendente</th>
-                    </tr>
-                    {issues_obh_rows}
+                    {issues_obh_details_section}
                 </table>
             </div>
 
@@ -150,26 +183,16 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
                     <tr>
                         <th colspan="6" class="header-title">Detalhes das Crises</th>
                     </tr>
-                    <tr>
-                        <th>Ticket</th>
-                        <th>Sistema</th>
-                        <th>Impacto</th>
-                        <th>Status</th>
-                        <th>Observações</th>
-                        <th>Checkpoint</th>
-                    </tr>
-                    {crisis_rows}
+                    {crisis_section}
                 </table>
             </div>
 
             <p style="text-align: center;">Este é um e-mail automático gerado pela aplicação de relatórios do Jira.</p>
         </body>
-    </html>
-
-
+        </html>
     """
 
-    # Mapeando as contagens para variáveis
+    # Formata o conteúdo com os dados
     html_content = html_content.format(
         tickets_geral=issue_counts.get("Tickets Registrados (Geral)", 0),
         resolvidos=issue_counts.get("Tickets Resolvidos", 0),
@@ -183,30 +206,8 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
         seguranca=issue_counts.get("Segurança", 0),
         general_observations=general_observations,
         text_events=text_events,
-        crisis_rows="".join([
-            f"""
-            <tr>
-                <td>{crisis["ticket"]}</td>
-                <td>{crisis["sistema"]}</td>
-                <td>{crisis["impacto"]}</td>
-                <td>{crisis["status"]}</td>
-                <td>{crisis["observacao"]}</td>
-                <td>{crisis["checkpoint"]}</td>
-            </tr>
-            """ for crisis in crisis_data
-        ]),
-        issues_obh_rows="".join([
-            f"""
-            <tr>
-                <td colspan="1">{issue["ticket"]}</td>
-                <td colspan="1">{issue["sistema"]}</td>
-                <td colspan="5">{issue["resumo"]}</td>
-                <td colspan="1">{issue["status"]}</td>
-                <td colspan="1">{issue["criado"]}</td>
-                <td colspan="1">{issue["equipe_atendente"]}</td>
-            </tr>
-            """ for issue in issues_obh_data
-        ])
+        issues_obh_details_section=issues_obh_details_section,
+        crisis_section=crisis_section
     )
 
     return html_content

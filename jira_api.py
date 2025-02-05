@@ -201,7 +201,7 @@ def fetch_obh_issues():
     """
     Obtém issues fora do horário comercial e faz consultas detalhadas para cada uma usando multithreading.
     """
-    jql_query_obh = f'project = Governança AND status != Resolvido AND type = Evento AND "Equipe Atendente[Dropdown]" IN ("Banco de Dados", Servidor, Cloud, Telecom, "Equipe - Cyber Security") AND created >= {from_time} AND created <= {to_time}'
+    jql_query_obh = f'project = Governança AND status NOT IN (Resolvido, Cancelado) AND type = Evento AND "Equipe Atendente[Dropdown]" IN ("Banco de Dados", Servidor, Cloud, Telecom, "Equipe - Cyber Security") AND created >= {from_time} AND created <= {to_time}'
     url = f"{JIRA_URL}/rest/api/3/search"
     headers = {"Accept": "application/json"}
     auth = (JIRA_USER, JIRA_API_TOKEN)
