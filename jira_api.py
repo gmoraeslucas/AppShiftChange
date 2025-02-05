@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
 from datetime import datetime
 import pytz
+import json
 
 load_dotenv()
 
@@ -19,13 +20,13 @@ if current_time_in_brazil.weekday() == 0:
     from_time = 'startOfWeek("-26h")'
     to_time = 'startOfWeek("\u002b32h")'
     text_events = "Alertas não resolvidos fora do horário comercial (Fim de semana)"
-
+    
 else:
     from_time = 'startOfDay("-2h")'
     to_time = 'startOfDay("\u002b8h")' 
     text_events = "Alertas não resolvidos fora do horário comercial"
 
-JQL_QUERIES = {
+JQL_QUERIES_CHECKLIST = {
     "Tickets Registrados (Geral)": "project = Governança AND issuetype = Evento AND created >= startOfDay()",
     "Tickets Resolvidos": "project = Governança AND issuetype = Evento AND status = Resolvido AND resolved >= startOfDay()",
     "Resolvidos com SLA vencido": "project = Governança AND issuetype = Evento AND status = Resolvido AND resolved >= startOfDay() AND \"SLA Evento\" = breached()",
@@ -67,7 +68,7 @@ def get_issue_counts():
     """
     counts = {}
     with ThreadPoolExecutor() as executor:
-        futures = [executor.submit(fetch_count_for_filter, name, jql) for name, jql in JQL_QUERIES.items()]
+        futures = [executor.submit(fetch_count_for_filter, name, jql) for name, jql in JQL_QUERIES_CHECKLIST.items()]
         
         for future in as_completed(futures):
             name, count = future.result()
@@ -151,3 +152,82 @@ def fetch_crisis_issues():
     else:
         print(f"Erro ao buscar issues de crises: {response.status_code} - {response.text}")
         return []
+    
+def fetch_obh_issue_details(issue_id):
+    """
+    Faz uma consulta detalhada de uma crise específica pelo issue_id.
+    """
+    url = f"{JIRA_URL}/rest/api/3/issue/{issue_id}"
+    headers = {"Accept": "application/json"}
+    auth = (JIRA_USER, JIRA_API_TOKEN)
+
+    try:
+        response = requests.get(url, headers=headers, auth=auth)
+        response.raise_for_status()
+
+        issue_data = response.json()
+        
+        issue_ticket = issue_data['key']
+
+        issue_resumo = issue_data['fields'].get('summary', {})
+
+        Sistema = issue_data['fields'].get('customfield_10273', {})
+        issue_sistema = Sistema.get('value', 'Não especificado')
+
+        Status = issue_data['fields'].get('status', {})
+        issue_status = Status.get('name', 'Não especificado')
+
+        Criado = issue_data['fields'].get('created', {})
+        Criado = Criado[:-5] + " " + Criado[-5:]
+        dt_object = datetime.strptime(Criado, "%Y-%m-%dT%H:%M:%S.%f %z")
+        issue_criado = dt_object.strftime("%d/%m/%Y - %H:%M")
+
+        Equipe_atendente = issue_data['fields'].get('customfield_10275', {})
+        issue_equipe_atendente = Equipe_atendente.get('value', 'Não especificado')
+        print(f"Processamento concluído para o ticket: {issue_ticket}")
+        return {
+            "ticket": issue_ticket,
+            "resumo": issue_resumo,
+            "sistema": issue_sistema,
+            "status": issue_status,
+            "criado": issue_criado,
+            "equipe_atendente": issue_equipe_atendente
+        }
+    except requests.exceptions.RequestException as e:
+        print(f"Erro ao buscar detalhes do ticket {issue_id}: {e}")
+        return None
+
+def fetch_obh_issues():
+    """
+    Obtém issues fora do horário comercial e faz consultas detalhadas para cada uma usando multithreading.
+    """
+    jql_query_obh = f'project = Governança AND status NOT IN (Resolvido, Cancelado) AND type = Evento AND "Equipe Atendente[Dropdown]" IN ("Banco de Dados", Servidor, Cloud, Telecom, "Equipe - Cyber Security") AND created >= {from_time} AND created <= {to_time}'
+    url = f"{JIRA_URL}/rest/api/3/search"
+    headers = {"Accept": "application/json"}
+    auth = (JIRA_USER, JIRA_API_TOKEN)
+    params = {"jql": jql_query_obh, "fields": "key", "maxResults": 50}
+
+    response = requests.get(url, headers=headers, params=params, auth=auth)
+    
+    if response.status_code == 200:
+        issues_data = response.json().get("issues", [])
+        if not issues_data:
+            print("Consulta realizada com sucesso, mas nenhuma issue foi encontrada.")
+            return []
+
+        issue_ids = [issue["key"] for issue in issues_data]
+
+        obh_issues = []
+        with ThreadPoolExecutor(max_workers=5) as executor: 
+            futures = [executor.submit(fetch_obh_issue_details, issue_id) for issue_id in issue_ids]
+            for future in as_completed(futures):
+                result = future.result()
+                if result:
+                    obh_issues.append(result)
+
+        print(f"Consulta realizada com sucesso. {len(obh_issues)} issues de crise processadas.")
+        return obh_issues
+    else:
+        print(f"Erro ao buscar issues de crises: {response.status_code} - {response.text}")
+        return []
+

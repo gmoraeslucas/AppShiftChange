@@ -23,9 +23,9 @@ def enviar_email_com_template_infobip(destinatario, destinatario_cc, assunto, co
         <body style="background-color: #f0f0f0; text-align: center; font-family: Arial, sans-serif;">
             <div style="padding: 20px;">
                 <div style="display: block; margin: 0 auto;">
-                    <img src="cid:unnamed.png" alt="Governança de TI" style="width: 100%; max-width: 640px; height: auto; max-height: 220px; margin-bottom: 20px;"/>
+                    <img src="cid:unnamed.png" alt="Governança de TI" style="width: 100%; max-width: 1040px; height: auto; max-height: 300px; margin-bottom: 20px;"/>
                 </div>
-                <div style="background-color: white; padding: 20px; border-radius: 10px; display: block; margin: 0 auto; max-width: 600px; text-align: left;">
+                <div style="background-color: white; padding: 20px; border-radius: 10px; display: block; margin: 0 auto; max-width: 1000px; text-align: left;">
                     {corpo_email_html}
                 </div>
             </div>
