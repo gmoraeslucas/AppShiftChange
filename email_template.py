@@ -3,8 +3,6 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
     Gera o conteúdo HTML do e-mail com base nas contagens de issues, nas informações detalhadas de cada crise
     e nas observações gerais.
     """
-
-    # Para issues fora do horário comercial (OBH): monta a seção de detalhes somente se houver dados
     if issues_obh_data:
         issues_obh_details_section = (
             """
@@ -31,9 +29,8 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
             ])
         )
     else:
-        issues_obh_details_section = ""  # Se não houver dados, não mostra a parte de detalhes
+        issues_obh_details_section = ""
 
-    # Para crises: se houver dados, exibe o cabeçalho e as linhas; se não, exibe somente uma linha com mensagem
     if crisis_data:
         crisis_section = (
             """
@@ -62,11 +59,10 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
     else:
         crisis_section = """
             <tr>
-                <td colspan="6" style="text-align: center;">Nenhuma issue de crise retornada</td>
+                <td colspan="6" style="text-align: center;">Nenhuma crise em andamento!</td>
             </tr>
         """
 
-    # Template HTML do e-mail
     html_content = """
         <html>
         <head>
@@ -118,6 +114,17 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
                 .header-title {{
                     background-color: #5a336b;
                     font-weight: bold;
+                }}
+                .spreadsheet-link {{
+                    background-color: #5a336b;
+                    color: #ffffff !important;
+                    padding: 10px 20px;
+                    text-decoration: none;
+                    border-radius: 4px;
+                    font-weight: bold;
+                }}
+                .spreadsheet-link:hover {{
+                    background-color: #482a50;
                 }}
             </style>
         </head>
@@ -177,6 +184,13 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
                 </table>
             </div>
 
+            <!-- Link da planilha estilizado -->
+            <p style="text-align: center; margin-top: 20px;">
+                <a href="https://docs.google.com/spreadsheets/d/1X_wDbd4xtE597QVw4q-oHfxBZLCH79lguH0X5f7BKsw/edit?gid=0#gid=0" target="_blank" class="spreadsheet-link">
+                    Backlog de eventos
+                </a>
+            </p>
+
             <!-- Detalhes das Crises -->
             <div class="table-container">
                 <table class="table">
@@ -192,7 +206,6 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
         </html>
     """
 
-    # Formata o conteúdo com os dados
     html_content = html_content.format(
         tickets_geral=issue_counts.get("Tickets Registrados (Geral)", 0),
         resolvidos=issue_counts.get("Tickets Resolvidos", 0),
