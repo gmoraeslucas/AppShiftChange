@@ -39,12 +39,12 @@ def create_main_interface():
     checklist_frame = ttk.LabelFrame(scrollable_frame, padding=10, bootstyle="secondary", borderwidth=1, relief="solid")
     checklist_frame.pack(fill="x", padx=10, pady=5)
 
-    headers_checklist = ["Tickets registrados (Geral)", "Resolvidos", "Resolvidos com SLA vencido", "Backlog", "Backlog com SLA vencido"]
+    headers_checklist = ["Tickets registrados", "Resolvidos", "Resolvidos com SLA vencido", "Backlog", "Backlog com SLA vencido"]
     for col, header in enumerate(headers_checklist):
         ttk.Label(checklist_frame, text=header, font=("Arial", 10, "bold"), anchor="center").grid(row=0, column=col, padx=10, pady=5, sticky="nsew")
 
     checklist_values = [
-        issue_counts.get("Tickets Registrados (Geral)", 0),
+        issue_counts.get("Tickets Registrados", 0),
         issue_counts.get("Tickets Resolvidos", 0),
         issue_counts.get("Resolvidos com SLA vencido", 0),
         issue_counts.get("Backlog", 0),
@@ -210,7 +210,7 @@ def submit_data(crisis_entries, issues_obh_entries, general_observations):
     today = datetime.today().strftime("%d/%m")
 
     try:
-        enviar_email_com_template_infobip(destinatario, destinatario_cc, f"Passagem de turno - {today}", email_content)
+        enviar_email_com_template_infobip(destinatario, destinatario_cc, f"Passagem de turno Teste teste teste - {today}", email_content)
         messagebox.showinfo("Envio de E-mail", "E-mail enviado com sucesso!")
     except Exception as e:
         messagebox.showerror("Erro de Envio", f"Ocorreu um erro ao enviar o e-mail: {e}")

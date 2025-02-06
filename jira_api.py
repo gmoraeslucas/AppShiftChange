@@ -27,7 +27,7 @@ else:
     text_events = "Alertas não resolvidos fora do horário comercial"
 
 JQL_QUERIES_CHECKLIST = {
-    "Tickets Registrados (Geral)": "project = Governança AND issuetype = Evento AND created >= startOfDay()",
+    "Tickets Registrados": "project = Governança AND issuetype = Evento AND created >= startOfDay()",
     "Tickets Resolvidos": "project = Governança AND issuetype = Evento AND status = Resolvido AND resolved >= startOfDay()",
     "Resolvidos com SLA vencido": "project = Governança AND issuetype = Evento AND status = Resolvido AND resolved >= startOfDay() AND \"SLA Evento\" = breached()",
     "Backlog": "project = Governança AND issuetype = Evento AND Status not in (Resolvido, Encerrado, Cancelado)",
