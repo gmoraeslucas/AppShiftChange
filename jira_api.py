@@ -225,7 +225,7 @@ def fetch_obh_issues():
                 if result:
                     obh_issues.append(result)
 
-        print(f"Consulta realizada com sucesso. {len(obh_issues)} issues de crise processadas.")
+        print(f"Consulta realizada com sucesso. {len(obh_issues)} issues fora do horário comercial processadas.")
         return obh_issues
     else:
         print(f"Erro ao buscar issues de crises: {response.status_code} - {response.text}")

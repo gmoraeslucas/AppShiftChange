@@ -141,9 +141,10 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
                     vertical-align: top;  /* Garante que o conteúdo fique no topo */
                 }}
                 .table th {{
-                    background-color: #d3d3d3;
+                    background-color: #006875;
                     font-weight: bold;
                     text-align: center;
+                    color: #ffffff;
                 }}
                 .table td {{
                     background-color: #ffffff;
@@ -156,7 +157,7 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
                     font-weight: bold;
                 }}
                 .spreadsheet-link {{
-                    background-color: #25407a;
+                    background-color: #00525b;
                     color: #ffffff !important;
                     padding: 10px 20px;
                     text-decoration: none;
@@ -164,13 +165,13 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
                     font-weight: bold;
                 }}
                 .spreadsheet-link:hover {{
-                    background-color: #1E325E;
+                    background-color: #003c42;
                 }}
             </style>
         </head>
         <body>
             <!-- Observações Gerais -->
-            <div class="table-container" style="background-color: #e9ecef">
+            <div class="table-container" style="background-color: #F5FAFC">
                 <h2 style="font-size: 17px; font-weight: bold;">Observações gerais:</h2>
                 <p style="font-size: 14px;">{general_observations}</p>
             </div>
