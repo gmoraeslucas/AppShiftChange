@@ -1,36 +1,8 @@
-def create_email_content(issue_counts, crisis_data, issues_obh_data, general_observations, text_events):
+def create_email_content(issue_counts, crisis_data, formatted_observations, text_events):
     """
     Gera o conteúdo HTML do e-mail com base nas contagens de issues, nas informações detalhadas de cada crise,
     nas observações gerais e nos eventos de alerta.
     """
-    if issues_obh_data:
-        issues_obh_details_section = (
-            """
-            <tr>
-                <th colspan="1">Ticket</th>
-                <th colspan="1">Sistema</th>
-                <th colspan="5">Resumo</th>
-                <th colspan="1">Status</th>
-                <th colspan="1">Criado</th>
-                <th colspan="1">Equipe Atendente</th>
-            </tr>
-            """
-            + "".join([
-                f"""
-                <tr>
-                    <td colspan="1">{issue["ticket"]}</td>
-                    <td colspan="1">{issue["sistema"]}</td>
-                    <td colspan="5">{issue["resumo"]}</td>
-                    <td colspan="1">{issue["status"]}</td>
-                    <td colspan="1">{issue["criado"]}</td>
-                    <td colspan="1">{issue["equipe_atendente"]}</td>
-                </tr>
-                """
-                for issue in issues_obh_data
-            ])
-        )
-    else:
-        issues_obh_details_section = ""
 
     if crisis_data:
         crisis_section = (
@@ -65,7 +37,7 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
             </tr>
         """
 
-    if any(issue_counts.get(key, 0) for key in ["Banco de dados", "Cloud", "Servidor", "Redes", "Segurança"]):
+    if any(issue_counts.get(key, 0) for key in ["Banco de dados", "Cloud", "Servidor", "Redes", "Segurança", "Sistemas"]):
         alerts_section_template = """
             <tr>
                 <th colspan="1">Banco de Dados</th>
@@ -81,9 +53,8 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
                 <td colspan="5" class="count">{servidor}</td>
                 <td colspan="1" class="count">{rede}</td>
                 <td colspan="1" class="count">{seguranca}</td>
-                <td colspan="1" class="count">N/A</td>
+                <td colspan="1" class="count">{sistemas}</td>
             </tr>
-            {issues_obh_details_section}
         """
 
         alerts_section = alerts_section_template.format(
@@ -92,7 +63,7 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
             servidor=issue_counts.get("Servidor", 0),
             rede=issue_counts.get("Redes", 0),
             seguranca=issue_counts.get("Segurança", 0),
-            issues_obh_details_section=issues_obh_details_section
+            sistemas=issue_counts.get("Sistemas", 0)
         )
     else:
         alerts_section = """
@@ -173,7 +144,7 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
             <!-- Observações Gerais -->
             <div class="table-container" style="background-color: #F5FAFC">
                 <h2 style="font-size: 17px; font-weight: bold;">Observações gerais:</h2>
-                <p style="font-size: 14px;">{general_observations}</p>
+                <p style="font-size: 14px;">{formatted_observations}</p>
             </div>
 
             <!-- Checklist -->
@@ -203,7 +174,7 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
             <div class="table-container">
                 <table class="table">
                     <tr>
-                        <th colspan="10" class="header-title">Alertas Não Resolvidos Fora do Horário Comercial</th>
+                        <th colspan="10" class="header-title">Quantidade de Alertas Fora do Horário Comercial</th>
                     </tr>
                     {alerts_section}
                 </table>
@@ -241,9 +212,9 @@ def create_email_content(issue_counts, crisis_data, issues_obh_data, general_obs
         servidor=issue_counts.get("Servidor", 0),
         rede=issue_counts.get("Redes", 0),
         seguranca=issue_counts.get("Segurança", 0),
-        general_observations=general_observations,
+        sistemas=issue_counts.get("Sistemas", 0),
+        formatted_observations=formatted_observations,
         text_events=text_events,
-        issues_obh_details_section=issues_obh_details_section,
         crisis_section=crisis_section,
         alerts_section=alerts_section
     )
